@@ -1,0 +1,76 @@
+# vim:ft=ansible:
+---
+
+- include_vars: "{{ ansible_os_family|lower }}.yml"
+
+- name: Install jenkins prerequisite apt packages
+  apt:
+    name:  "{{ item }}"
+    state: present
+  with_items: "{{ jenkins_prereq_pkgs|union(jenkins_apt_pkgs_extra) }}"
+  when: ansible_os_family|lower == 'debian'
+
+- name: Install jenkins prerequisite yum packages
+  yum:
+    name:  "{{ item }}"
+    state: present
+  with_items: "{{ jenkins_prereq_pkgs|union(jenkins_yum_pkgs_extra) }}"
+  when: ansible_os_family|lower == 'redhat'
+
+- name: Install extra pip packages desired
+  pip:
+    name:  "{{ item }}"
+    state: present
+  with_items: "{{ jenkins_pip_pkgs_extra }}"
+
+- name: Jenkins Install
+  import_tasks: "{{ jenkins_role|default('master') }}.yml"
+
+- name: Set permissions for admin
+  jenkins_script:
+    script: |
+        import jenkins.model.*
+        import hudson.security.*
+        def instance = Jenkins.getInstance()
+        def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+        instance.setSecurityRealm(hudsonRealm)
+        def strategy = new GlobalMatrixAuthorizationStrategy()
+        // Admin Permissions
+        strategy.add(Jenkins.ADMINISTER, "admin")
+        instance.setAuthorizationStrategy(strategy)
+        instance.save()
+    user: "{{ jenkins_admin_username }}"
+    password: "{{ jenkins_admin_password }}"
+
+- name: Set permissions for Anonymous
+  jenkins_script:
+    script: |
+        import jenkins.model.*
+        import hudson.security.*
+        def instance = Jenkins.getInstance()
+        def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+        instance.setSecurityRealm(hudsonRealm)
+        def strategy = instance.getAuthorizationStrategy()
+        //  Overall Permissions
+        strategy.add(Jenkins.READ, 'anonymous')
+        //  Job Permissions
+        strategy.add(hudson.model.Item.BUILD,'anonymous')
+        strategy.add(hudson.model.Item.CANCEL,'anonymous')
+        strategy.add(hudson.model.Item.READ,'anonymous')
+        //  View Permissions
+        strategy.add(hudson.model.View.READ,'anonymous')
+        strategy.add(hudson.model.View.CREATE,'anonymous')
+        strategy.add(hudson.model.View.DELETE,'anonymous')
+        strategy.add(hudson.model.View.CONFIGURE,'anonymous')
+        instance.setAuthorizationStrategy(strategy)
+        instance.save()
+    user: "{{ jenkins_admin_username }}"
+    password: "{{ jenkins_admin_password }}"
+
+#- name: Add Users To Jenkins
+#  import_tasks: users.yml
+#  tags:
+#    - users
+#
+#- name: install cron task to check/add new jenkins users every few minutes
+#  import_tasks: cron.yml

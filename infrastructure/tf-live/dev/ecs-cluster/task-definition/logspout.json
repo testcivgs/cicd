@@ -1,0 +1,23 @@
+[
+    {
+      "name": "${name_logspout}",
+      "image": "${image_logspout}",
+      "cpu": ${docker_cpu_limit},
+      "memory": ${docker_memory_limit},
+      "entryPoint": [],
+      "environment": [],
+      "portMappings": [{
+        "containerPort": 1234,
+        "hostPort": 1234,
+        "protocol": "tcp"
+      }],
+      "command": ["syslog://${papertrailapp_host}:${papertrailapp_port}"],
+      "volumesFrom": [],
+      "links": [],
+      "mountPoints": [{
+        "containerPath": "/tmp/docker.sock",
+        "sourceVolume": "dockersock"
+      }],
+      "essential": true
+    }
+]

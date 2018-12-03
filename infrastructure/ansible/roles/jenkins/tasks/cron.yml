@@ -1,0 +1,17 @@
+# vim:ft=ansible:
+---
+
+- name: create directory to store log file
+  file:
+    path: /var/log/jenkins-users
+    owner: ubuntu
+    state: directory
+
+- name: setup crontab task to check/add new jenkins users every few minutes
+  cron:
+    name: "Add Jenkins Users"
+    cron_file: add-jenkins-users
+    minute: "*/10"
+    job: "cd /opt/infrastructure/ansible && git pull && /usr/bin/ansible-playbook -i inventories/localhost playbooks/jenkins.yml --vault-password-file /opt/vault/vault.txt --tags users > /var/log/jenkins-users/jenkins.log 2>&1"
+    user: root
+    state: present

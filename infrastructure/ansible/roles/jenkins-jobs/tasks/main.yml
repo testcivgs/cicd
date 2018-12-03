@@ -1,0 +1,14 @@
+# vim:ft=ansible:
+---
+
+- name: Install Credentials used by Jobs
+  import_tasks: job-credentials.yml
+
+- name: Install Jobs
+  import_tasks: jobs.yml
+
+- name: Install Terraform
+  import_tasks: terraform.yml
+
+- name: Install Terragrunt
+  import_tasks: terragrunt.yml

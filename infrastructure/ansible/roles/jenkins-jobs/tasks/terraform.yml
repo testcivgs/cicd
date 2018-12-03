@@ -1,0 +1,38 @@
+# vim:ft=ansible:
+---
+
+- name: Download terraform
+  get_url:
+    url: "{{ tf_download_url }}"
+    dest: "/opt/terraform-{{ terraform_version }}.zip"
+
+- name: Install unzip to unarchive terraform
+  apt:
+    name: unzip
+    state: present
+
+- name: Create Terraform directory
+  file:
+    path: "/opt/terraform-{{ terraform_version }}"
+    state: directory
+    owner: "root"
+    group: "root"
+  register: terraform_directory
+
+- name: Unarchive Terraform archive
+  unarchive:
+    src: "/opt/terraform-{{ terraform_version }}.zip"
+    dest: "/opt/terraform-{{ terraform_version }}"
+    copy: no
+  when: terraform_directory is changed
+
+- name: Make terraform executable
+  file:
+    path: "/opt/terraform-{{ terraform_version }}/terraform"
+    mode: 0755
+
+- name: Adding terraform command to user path
+  file:
+    src: "/opt/terraform-{{ terraform_version }}/terraform"
+    dest: /usr/bin/terraform
+    state: link

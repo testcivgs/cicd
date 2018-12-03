@@ -1,0 +1,22 @@
+[
+    {
+      "name": "${service_name}",
+      "image": "${docker_image}",
+      "cpu": ${docker_cpu_limit},
+      "memory": ${docker_memory_limit},
+      "entryPoint": [],
+      "environment": [ ],
+      "portMappings": [
+        {
+          "hostPort": 0,
+          "containerPort": ${container_port},
+          "protocol": "tcp"
+        }
+      ],
+      "command": [],
+      "volumesFrom": [],
+      "links": [],
+      "mountPoints": [],
+      "essential": true
+    }
+]

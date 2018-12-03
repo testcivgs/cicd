@@ -1,0 +1,27 @@
+# vim:ft=ansible:
+---
+
+- name: install Jenkins server
+  hosts: localhost
+  vars:
+    app_name: jenkins
+  vars_files:
+    - [ "../vars/{{ app_name }}/vars-vault.yml", "../vars/empty-vars.yml" ]
+    - [ "../vars/{{ app_name }}/vars.yml", "../vars/empty-vars.yml" ]
+    - [ "../vars/aws-ecr-credentials-helper/vars.yml", "../vars/empty-vars.yml" ]
+  tasks:
+    - name: Install java
+      import_role:
+        name: java
+
+    - name: Install AWS ECR docker credential helper
+      import_role:
+        name: aws-ecr-credentials-helper
+
+    - name: Install jenkins server
+      import_role:
+        name: jenkins
+
+    - name: Install jenkins jobs
+      import_role:
+        name: jenkins-jobs

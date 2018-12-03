@@ -1,0 +1,20 @@
+# vim:ft=ansible:
+---
+
+- name: Get list of installed jobs
+  stat:
+    path: "/var/lib/jenkins/jobs/{{ item }}/config.xml"
+  with_items: "{{ jenkins_jobs }}"
+  register: installed_jobs
+
+- name: jobs
+  jenkins_job:
+    config:   "{{ lookup('file', '../../jenkins/{{ item.0 }}/config.xml') }}"
+    name:     "{{ item.0 }}"
+    password: "{{ jenkins_admin_password }}"
+    url:      "{{ jenkins_params.url }}"
+    user:     "{{ jenkins_params.url_username }}"
+  when: item.1.stat.exists == False
+  with_together:
+    - "{{ jenkins_jobs }}"
+    - "{{ installed_jobs.results }}"

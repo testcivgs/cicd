@@ -1,0 +1,1 @@
+{"Modules":[{"Source":"../../../tf-modules/aws_vpc","Key":"1.vpc;../../../tf-modules/aws_vpc","Version":"","Dir":".terraform/modules/b553ddb9fb6b348119dbc2b609d22698","Root":""},{"Source":"../../../tf-modules/aws_vpc_peering","Key":"1.vpc_peering_mgmt_to_dev;../../../tf-modules/aws_vpc_peering","Version":"","Dir":".terraform/modules/b088a9fc00233ad2a96aef95d00da5ce","Root":""}]}

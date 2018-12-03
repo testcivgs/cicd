@@ -1,0 +1,6 @@
+jenkins_extra_job_creds_config: []
+jenkins_extra_jobs: []
+terraform_version: 0.8.8
+tf_download_url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+terragrunt_version: 0.9.6
+terragrunt_download_url: "https://github.com/gruntwork-io/terragrunt/releases/download/v{{ terragrunt_version }}/terragrunt_linux_amd64"

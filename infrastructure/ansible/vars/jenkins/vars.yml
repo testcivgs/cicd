@@ -1,0 +1,83 @@
+jenkins_admin_password: "{{ vault_jenkins_admin_password }}"
+jenkins_admin_username: admin
+jenkins_http_port: 8080
+
+jenkins_jobs_user:  jenkins
+jenkins_jobs_group: "{{ jenkins_jobs_user }}"
+jenkins_jobs_home: "/var/lib/{{ jenkins_jobs_user }}"
+
+jenkins_params:
+  url_username: "{{ jenkins_admin_username }}"
+  url: "http://localhost:{{ jenkins_http_port }}"
+
+jenkins_extra_login_user: "{{ jenkins_admin_username }}"
+jenkins_extra_login_pass: "{{ jenkins_admin_password }}"
+
+my_jenkins_plugins:
+  workflow-aggregator:
+    enabled: yes
+  github:
+    enabled: yes
+  copyartifact:
+    enabled: yes
+  credentials-binding:
+    enabled: yes
+  build-blocker-plugin:
+    enabled: yes
+  amazon-ecr:
+    enabled: yes
+  slack:
+    enabled: yes
+  matrix-auth:
+    enabled: yes
+  htmlpublisher:
+    enabled: yes
+  extensible-choice-parameter:
+    enabled: yes
+  pipeline-aws:
+    enabled: yes
+
+jenkins_extra_job_creds_config:
+  - id: scm-key
+    type: ssh-private-key
+    user: jenkins
+    description: ssh key to checkout github repos
+    creds_key: "{{ vault_scm_private_key }}"
+  - id: infra-key
+    type: ssh-private-key
+    user: jenkins
+    description: ssh key to checkout infrastructure github repo
+    creds_key: "{{ vault_scm_infra_private_key }}"
+  - id: frontend-key
+    type: ssh-private-key
+    user: jenkins
+    description: ssh key to checkout frontend github repo
+    creds_key: "{{ vault_scm_frontend_private_key }}"
+  - id: backend-key
+    type: ssh-private-key
+    user: jenkins
+    description: ssh key to checkout backend github repo
+    creds_key: "{{ vault_scm_backend_private_key }}"
+  - id: kaui-key
+    type: ssh-private-key
+    user: jenkins
+    description: ssh key to checkout killbill-admin-ui github repo
+    creds_key: "{{ vault_scm_kaui_private_key }}"
+  - id: kauis-key
+    type: ssh-private-key
+    user: jenkins
+    description: ssh key to checkout killbill-admin-ui-standalone github repo
+    creds_key: "{{ vault_scm_kauis_private_key }}"
+  - id: slack-token
+    type: secret-text
+    description: slack api token
+    secret: "{{ vault_jenkins_slack_token }}"
+
+jenkins_jobs:
+  - deploy-service
+  - frontend
+
+jenkins_version: "2.107.2"
+
+terraform_version: 0.11.3
+terragrunt_version: 0.14.0

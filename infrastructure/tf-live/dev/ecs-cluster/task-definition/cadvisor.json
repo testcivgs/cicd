@@ -1,0 +1,45 @@
+[
+    {
+      "name": "${name_cadvisor}",
+      "image": "${image_cadvisor}",
+      "cpu": ${docker_cpu_limit},
+      "memory": ${docker_memory_limit},
+      "essential": true,
+      "privileged": true,
+      "mountPoints": [
+        {
+          "containerPath": "/rootfs",
+          "sourceVolume": "rootfs",
+          "readOnly": true
+        },
+        {
+          "containerPath": "/var/run",
+          "sourceVolume": "run",
+          "readOnly": false
+        },
+        {
+          "containerPath": "/sys",
+          "sourceVolume": "sys",
+          "readOnly": true
+        },
+        {
+          "containerPath": "/var/lib/docker",
+          "sourceVolume": "docker",
+          "readOnly": true
+        },
+        {
+          "containerPath": "/sys/fs/cgroup",
+          "sourceVolume": "cgroup",
+          "readOnly": true
+        }
+      ],
+      "environment": [
+        { "name": "LOGSPOUT", "value": "ignore" }
+      ],
+      "portMappings": [{
+        "containerPort": 8080,
+        "hostPort": 9150,
+        "protocol": "tcp"
+      }]
+    }
+  ]

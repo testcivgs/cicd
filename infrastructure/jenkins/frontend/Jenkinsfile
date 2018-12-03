@@ -1,0 +1,102 @@
+def err = null
+currentBuild.result     = 'SUCCESS'
+def serviceDisplayName  = 'frontend'
+def serviceName         = 'frontend'
+def repoServiceName     = 'github.com'
+def repoName            = "git@${repoServiceName}:testvgs/${serviceName}.git"
+def dockerRepoName      = 'frontend'
+def awsRegion           = 'eu-west-1'
+def awsClientId         = "514824158086"
+def dockerRegistryName  = "${awsClientId}.dkr.ecr.${awsRegion}.amazonaws.com"
+def dockerRegistryUrl   = "https://${dockerRegistryName}"
+def fileVersion         = "${serviceDisplayName}-build-name.txt"
+def slackTeam           = 'testvgs'
+
+// To use slack notifications install Jenkins CI Slack App
+// https://{{ SLACK_TEAM }}.slack.com/apps/A0F7VRFKN-jenkins-ci
+def buildNotify(slackTeam, buildStatus, subject) {
+    // build status of null means successful
+    buildStatus =  buildStatus ?: 'SUCCESS'
+
+    // Default values
+    def colorCode = 'warning'
+    def summary = "${subject} (<${env.BUILD_URL}|Open>)"
+
+    // Override default values based on build status
+    if (buildStatus == 'STARTED') {
+      colorCode = 'warning'
+    } else if (buildStatus == 'SUCCESS') {
+      colorCode = 'good'
+    } else {
+      colorCode = 'danger'
+    }
+
+    // Send notifications
+    slackSend color: colorCode,
+              message: summary,
+              teamDomain: "${slackTeam}",
+              channel: '#jenkins-fe',
+              tokenCredentialId: 'slack-token'
+}
+
+node {
+    properties([
+        pipelineTriggers([pollSCM('H/2 * * * *')]),
+        disableConcurrentBuilds()
+    ])
+
+    try {
+        stage('Get Source') {
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: '*/master']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'CleanBeforeCheckout']],
+                submoduleCfg: [],
+                userRemoteConfigs: [[url: "${repoName}", credentialsId: 'scm-key']]
+            ])
+
+            // Change build display name
+            shortCommit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+            commitCount = sh(returnStdout: true, script: 'git rev-list --count HEAD').trim()
+
+            currentBuild.displayName = "${commitCount}-${shortCommit}-${BUILD_NUMBER}"
+            gitCommitAuthor = sh(returnStdout: true, script: 'git show --format="%aN" ${gitCommit} | head -1').trim()
+
+            buildNotify "${slackTeam}", 'STARTED', "${env.JOB_NAME} - ${currentBuild.displayName} Started by changes from ${gitCommitAuthor}"
+
+            writeFile file: "${fileVersion}", text: "${currentBuild.displayName}"
+        }
+
+        stage('Build and Publish Docker Image') {
+            docker.withRegistry("${dockerRegistryUrl}") {
+                def image = docker.build("${dockerRepoName}:${currentBuild.displayName}")
+                image.push()
+                image.push 'latest'
+            }
+        }
+    }
+    catch (caughtError) {
+        currentBuild.result = "FAILURE"
+        throw caughtError
+    }
+    finally {
+        sh """
+          [ -z "\$(docker images -q ${dockerRegistryName}/${dockerRepoName}:${currentBuild.displayName})" ] || docker rmi "${dockerRegistryName}/${dockerRepoName}:${currentBuild.displayName}"
+          [ -z "\$(docker images -q ${dockerRegistryName}/${dockerRepoName}:latest)" ] || docker rmi "${dockerRegistryName}/${dockerRepoName}:latest"
+          [ -z "\$(docker images -q ${dockerRepoName}:${currentBuild.displayName})" ] || docker rmi "${dockerRepoName}:${currentBuild.displayName}"
+        """
+
+        buildNotify "${slackTeam}", "${currentBuild.result}", "${env.JOB_NAME} - ${currentBuild.displayName} ${currentBuild.result}"
+
+        archiveArtifacts artifacts: "${fileVersion}",
+                         onlyIfSuccessful: true
+    }
+}
+
+ build job: 'deploy-service',
+      parameters: [
+        string(name: 'SERVICE_NAME', value: "${serviceDisplayName}"),
+        string(name: 'ENVIRONMENT', value: "dev"),
+        string(name: 'SERVICE_DOCKER_TAG', value: "${currentBuild.displayName}")],
+      wait: false

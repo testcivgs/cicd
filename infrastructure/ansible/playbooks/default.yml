@@ -1,0 +1,21 @@
+# vim:ft=ansible:
+---
+
+- name: Setup EC2 instance
+  hosts: localhost
+  tasks:
+    - name: Get EC2 facts
+      action: ec2_metadata_facts
+
+    - name: Retrieve all tags on an instance
+      ec2_tag:
+        region: '{{ ansible_ec2_placement_region }}'
+        resource: '{{ ansible_ec2_instance_id }}'
+        state: list
+      register: ec2_tags
+
+    #  When EC2 tag IAMSSH is defined and equal true
+    - name: Allow ssh access iam users
+      import_role:
+        name: aws-ec2-iam-ssh
+      when: ec2_tags.tags.IAMSSH is defined and ( ec2_tags.tags.IAMSSH == 'true' or ec2_tags.tags.IAMSSH == 'True' )

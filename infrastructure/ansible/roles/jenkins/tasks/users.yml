@@ -1,0 +1,53 @@
+# vim:ft=ansible:
+---
+
+- name: Check if user folder exists
+  stat:
+    path: /var/lib/jenkins/users/{{ item.user }}
+  with_items: "{{ jenkins_users }}"
+  register: user_folder
+
+- name: Add Users To Jenkins
+  jenkins_script:
+    script: |
+        import hudson.security.*
+        import jenkins.model.*
+        def instance = Jenkins.getInstance()
+        def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+        hudsonRealm.createAccount('{{ item.0.user }}', '{{ item.0.tmp_pass }}')
+        instance.setSecurityRealm(hudsonRealm)
+        instance.save()
+    user: "{{ jenkins_admin_username }}"
+    password: "{{ jenkins_admin_password }}"
+  with_together:
+    -  "{{ jenkins_users }}"
+    -  "{{ user_folder.results }}"
+  when: item.1.stat.exists == False
+
+- name: set permissions for users
+  jenkins_script:
+    script: |
+        import jenkins.model.*
+        import hudson.security.*
+        def instance = Jenkins.getInstance()
+        def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+        instance.setSecurityRealm(hudsonRealm)
+        def strategy = instance.getAuthorizationStrategy()
+        //  Overall Permissions
+        strategy.add(Jenkins.READ, '{{ item.0.user }}')
+        //  Job Permissions
+        strategy.add(hudson.model.Item.BUILD,'{{ item.0.user }}')
+        strategy.add(hudson.model.Item.CANCEL,'{{ item.0.user }}')
+        strategy.add(hudson.model.Item.CONFIGURE,'{{ item.0.user }}')
+        strategy.add(hudson.model.Item.CREATE,'{{ item.0.user }}')
+        strategy.add(hudson.model.Item.DISCOVER,'{{ item.0.user }}')
+        strategy.add(hudson.model.Item.READ,'{{ item.0.user }}')
+        strategy.add(hudson.model.Item.WORKSPACE,'{{ item.0.user }}')
+        instance.setAuthorizationStrategy(strategy)
+        instance.save()
+    user: "{{ jenkins_admin_username }}"
+    password: "{{ jenkins_admin_password }}"
+  with_together:
+    -  "{{ jenkins_users }}"
+    -  "{{ user_folder.results }}"
+  when: item.1.stat.exists == False

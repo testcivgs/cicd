@@ -1,0 +1,97 @@
+# vim:ft=ansible:
+---
+
+- name: Get jenkins debian package
+  get_url:
+    url:   "{{ jenkins_pkg_url }}"
+    dest:  "/var/tmp/{{ jenkins_deb_pkg }}"
+  when: ansible_os_family|lower == 'debian'
+
+- name: Install jenkins | Debian
+  apt:
+    deb:   "/var/tmp/{{ jenkins_deb_pkg }}"
+    state: present
+  when: ansible_os_family|lower == 'debian'
+  register: deb_install
+
+- name: Get jenkins rpm package
+  get_url:
+    url:   "{{ jenkins_pkg_url }}"
+    dest:  "/var/tmp/{{ jenkins_rpm_pkg }}"
+  when: ansible_os_family|lower == 'redhat'
+
+- name: Install jenkins | RedHat
+  yum:
+    name:   "/var/tmp/{{ jenkins_rpm_pkg }}"
+    state: present
+  when: ansible_os_family|lower == 'redhat'
+  register: rpm_install
+
+- name: Check jenkins home dir exists in case it is different from the default /var/lib/jenkins
+  stat:
+    path: "{{ jenkins_home }}"
+  register: h
+
+- name: Ensure jenkins starts after install so initial password file is created
+  service: name=jenkins state=started
+  when: deb_install is changed or rpm_install is changed
+
+- name: Wait for jenkins initial admin password file to be created
+  wait_for:
+    path: "/var/lib/jenkins/secrets/initialAdminPassword"
+  when: (deb_install is changed or rpm_install is changed) and not h.stat.isdir|default(false)
+
+- name: Stop jenkins
+  service: name=jenkins state=stopped
+  when: not h.stat.isdir|default(false)
+
+- name: Stop processes running as jenkins user
+  shell: pkill -u jenkins || true
+  when: not h.stat.isdir|default(false)
+
+- name: Ensure jenkins user home directory is in the appropriate location
+  user:
+    name:  "{{ jenkins_user }}"
+    home:  "{{ jenkins_home }}"
+    move_home: yes
+    groups: docker
+    append: yes
+  when: not h.stat.isdir|default(false)
+
+- name: Ensure jenkins user can run docker without sudo
+  user:
+    name:  "{{ jenkins_user }}"
+    groups: docker
+    append: yes
+
+- name: Create jenkins startup script default config | Debian
+  template:
+    src:   etc.default.jenkins.j2
+    dest:  /etc/default/jenkins
+    owner: root
+    group: root
+    mode:  0644
+  when: ansible_os_family|lower == 'debian'
+  notify: Restart jenkins
+
+- name: Create jenkins startup script default config
+  template:
+    src:   jenkins.sysconfig.j2
+    dest:  /etc/sysconfig/jenkins
+    owner: root
+    group: root
+    mode:  0644
+  when: ansible_os_family|lower == 'redhat'
+  notify: Restart jenkins
+
+- name: Jenkins Init Scripts
+  import_tasks: init.yml
+
+- name: Start jenkins
+  service: name=jenkins enabled=yes state=started
+
+- name: Jenkins Post Init Scripts
+  import_tasks: post-init.yml
+
+- name: Jenkins Plugins
+  import_tasks: plugins.yml

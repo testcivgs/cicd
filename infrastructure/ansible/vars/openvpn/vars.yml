@@ -1,0 +1,42 @@
+# vim:ft=ansible:
+
+# Enter your name, email that you used to generate/upload pgp key
+# and slack id (which you see under direct messages section) here (uncomment lines below)
+# to generate your personal ovpn file (file will be send via slack within 10 min after you push to git)
+openvpn_users:
+  - name: uid
+    email: user@domain.com
+    slack_id: someid
+#  - name: your.name
+#    email: your.email (that you used to generate/upload pgp key)
+#    slack_id: your.id
+
+key_country: "UK"
+key_province: "JK"
+key_city: "London"
+key_org: "Company Ltd."
+key_email: "contact@company.com"
+
+openvpn_push_route:
+  - "route 10.110.0.0 255.255.0.0"
+  - "route 10.120.0.0 255.255.0.0"
+  - "route 10.130.0.0 255.255.0.0"
+  - "route 10.140.0.0 255.255.0.0"
+
+openvpn_dns_servers:
+  - "10.110.0.2"
+  - "8.8.8.8"
+
+openvpn_domain_search:
+  - "SEARCH connected.express"
+  - "SEARCH dev.connected.express"
+  - "SEARCH mgmt.connected.express"
+  - "SEARCH test.connected.express"
+
+openvpn_subnet: "server 10.8.0.0 255.255.255.0"
+
+openvpn_serial: 1E
+
+openvpn_default_slack_channel: ovpn
+
+openvpn_backup_bucket: ce-backup

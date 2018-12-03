@@ -1,0 +1,16 @@
+[
+    {
+      "name": "${name_node_exporter}",
+      "image": "${image_node_exporter}",
+      "cpu": ${docker_cpu_limit},
+      "memory": ${docker_memory_limit},
+      "essential": true,
+      "entryPoint": [],
+      "environment": [],
+      "portMappings": [{
+        "containerPort": 9100,
+        "hostPort": 9100,
+        "protocol": "tcp"
+      }]
+    }
+  ]

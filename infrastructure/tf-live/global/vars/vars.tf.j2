@@ -1,0 +1,124 @@
+
+variable "ansible_vault_password" {
+  description = "Ansible Vault Password."
+  default     = "{{ vault_ansible_vault_password }}"
+}
+
+variable "deployer_ssh_key" {
+  description = "SSH private key with readonly access to infrastructure repo."
+  default     = <<EOF
+{{ vault_deployer_ssh_key }}
+EOF
+}
+
+variable "bootstrap_data_bucket" {
+  default = "ce-bootstrap-data"
+}
+
+variable "backup_bucket" {
+  default = "ce-backup"
+}
+
+variable "aws_region" {
+  default = "eu-central-1"
+}
+
+variable "tf_remote_state_bucket_name" {
+  default = "ce-tf-remote-state-storage"
+}
+
+variable "main_domain" {
+  default = "connected.express"
+}
+
+variable "aws_ssh_public_key" {
+  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2cHutfwerD7jZf60HG+j3Mqj+krrzkiVJgGElM3JldOnPWVO70GDtCM0WcfCmvK8bXUH47+jT2NJH094moipqB68RnfCUbdFIblmbRI8P1vOILr45RfA8LlZXtzeQBiTrUK5EbMgEfXaHiH5cNPdcVBP37VpeO2fMBvEBLy1lmc9MNcuah/9KeFmaaxL+ttTL0BjKjbMLj1MaeVhmP0gjF/CcqiiSKKYRct97jtnshhbXM0lYSLyIFsQy/41kOgN0S0cnXodr9rYfAPdPwzNeyKeh2BOi4/hvczi85/DxlqHKOTnkbVZ8Um9ZwULU/p5xWjSzWAInt0ZFNMsIQx57"
+}
+
+variable "aws_vpc_cidr_mgmt" {
+  default = "10.110.0.0/16"
+}
+
+variable "mgmt_public_subnets" {
+  default = ["10.110.1.0/24"]
+}
+
+variable "mgmt_private_subnets" {
+  default = ["10.110.101.0/24"]
+}
+
+variable "mgmt_azs" {
+  default = ["eu-central-1a"]
+}
+
+variable "mgmt_domain_name" {
+  default = "mgmt.connected.express"
+}
+
+variable "aws_vpc_cidr_dev" {
+  default = "10.130.0.0/16"
+}
+
+variable "dev_public_subnets" {
+  default = ["10.130.1.0/24", "10.130.2.0/24"]
+}
+
+variable "dev_private_subnets" {
+  default = ["10.130.101.0/24", "10.130.102.0/24"]
+}
+
+variable "dev_azs" {
+  default = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
+}
+
+variable "dev_domain_name" {
+  default = "dev.connected.express"
+}
+
+variable "aws_vpc_cidr_test" {
+  default = "10.120.0.0/16"
+}
+
+variable "test_public_subnets" {
+  default = ["10.120.1.0/24", "10.120.2.0/24"]
+}
+
+variable "test_private_subnets" {
+  default = ["10.120.101.0/24", "10.120.102.0/24"]
+}
+
+variable "prod_public_subnets" {
+  default = ["10.140.1.0/24", "10.140.2.0/24"]
+}
+
+variable "prod_private_subnets" {
+  default = ["10.140.101.0/24", "10.140.102.0/24"]
+}
+
+variable "aws_vpc_cidr_prod" {
+  default = "10.140.0.0/16"
+}
+
+variable "test_azs" {
+  default = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
+}
+
+variable "prod_azs" {
+  default = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
+}
+
+variable "test_domain_name" {
+  default = "test.connected.express"
+}
+
+variable "prod_domain_name" {
+  default = "prod.connected.express"
+}
+
+variable "git_infrastructure_repo" {
+  default = "git@github.com:testvgs/infrastructure.git"
+}
+
+variable "git_infrastructure_host" {
+  default = "github.com"
+}

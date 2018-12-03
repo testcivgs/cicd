@@ -1,0 +1,20 @@
+# vim:ft=ansible:
+---
+
+- name: Install jenkins prerequisite apt packages
+  apt:
+    name:  "{{ item }}"
+    state: present
+  with_items: "{{ jenkins_prereq_pkgs|union(jenkins_apt_pkgs_extra) }}"
+
+
+- name: Get jenkins debian package
+  get_url:
+    url:   "{{ jenkins_pkg_url }}"
+    dest:  "/var/tmp/{{ jenkins_deb_pkg }}"
+
+- name: Install jenkins
+  apt:
+    deb:   "/var/tmp/{{ jenkins_deb_pkg }}"
+    state: present
+  register: deb_install
